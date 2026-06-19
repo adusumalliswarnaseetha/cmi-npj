@@ -2,7 +2,6 @@
 se.section1
 
 RNA_data <- as.data.frame(se.section1@assays$RNA@data)
-
 #clusno=0
 for(clusno in unique(se.section1@meta.data$SCT_snn_res.0.5)){
   spot_ids <- se.section1@meta.data %>% filter(SCT_snn_res.0.5==clusno) %>% row.names()
@@ -36,26 +35,19 @@ cal_percent <- function(ldf){
   return(tmpdf)
 }
 
-
-
 #se.section1 <- se
 # se.section1 <- SCTransform(se.section1)
 # se. <- SCTransform(se)
 # spots_human <- read.table("/Users/swarna/Documents/nBox/CM_Spatial_2_12wk/Acute_2w/results/TEST_Cluster_counts_rep1_0.5_clusno2.tsv", sep="\t")
-# 
 # human_top25 <- spots_human %>% arrange(desc(nHuman)) %>% head(200) %>% row.names
-# 
 # se.section1@meta.data$human_top <- 0
 # se.section1@meta.data$human_top[row.names(se.section1@meta.data)%in%human_top25] <- 1
-# 
 # se.section1 <- LoadImages(se.section1, time.resolve = F, verbose = T)
 # ImagePlot(se.section1, method = "raster", darken = TRUE, type = "raw")
 # ST.FeaturePlot(object = se.section1, 
 #                features = c("human_top"), dark.theme = F,
 #                cols = c("violet", "red")
 # )
-
-
 FeatureOverlay(se.section1, 
                features = c("GRCh38-TNNC1"), 
                pt.size = 1.5,
@@ -63,7 +55,6 @@ FeatureOverlay(se.section1,
                dark.theme = T, 
                type = "raw",
                sampleids = 1,min.cutoff="q1")
-
 FeatureOverlay(se.section1, 
                features = c("Ssus11-TNNC1"), 
                pt.size = 1.5,
@@ -71,24 +62,18 @@ FeatureOverlay(se.section1,
                dark.theme = T, 
                type = "raw",
                sampleids = 1,min.cutoff="q1")
-
-
 # spot_info <- as.data.frame(t(apply(RNA_data, 2, function(x) { cal_proportion(x, row.names(RNA_data))})))
 # colnames(spot_info) <- c("numGenes_Human", "numGenes_Monkey", "avgExp_Human", "avgExp_Monkey","topGenes_Human","topGenes_Monkey")
 # spot_info$numGenes_Human <- as.numeric(spot_info$numGenes_Human)
 # spot_info$numGenes_Monkey <- as.numeric(spot_info$numGenes_Monkey)
 # spot_info$avgExp_Human <- as.numeric(spot_info$avgExp_Human)
 # spot_info$avgExp_Monkey <- as.numeric(spot_info$avgExp_Monkey)
-# 
 # spot_info$diff_GeneCounts <- spot_info$numGenes_Human - spot_info$numGenes_Monkey
 # spot_info$diff_avgExp <- spot_info$avgExp_Human - spot_info$avgExp_Monkey
 # write.table(spot_info, "D1_combined_SpotInfo.txt", sep="\t")
-
 ##########################################
 ###### per cluster - spot info summarized
-
 files <- list.files(pattern = "*.tsv")
-
 process_file <- function(x){
   df = read.table(x, sep="\t", header=T)
   nonzero_human <- sum(df$nHuman>0)
@@ -102,5 +87,4 @@ process_file <- function(x){
                       avgExpHuman_mean=avgExpHuman_mean, avgExpPig_mean=avgExpPig_mean)
   return(resdf)
 }
-
 res_stats <- do.call("rbind", lapply(files, process_file))
