@@ -9,7 +9,7 @@ library("org.Ss.eg.db")
 library("clusterProfiler")
 library(clustree)
 
-load("./Chronic_All_Analysis.Rdata")
+#load("./Chronic_All_Analysis.Rdata")
 infoTable <- read.table("infotable.txt",
                         header=T, sep="\t", stringsAsFactors = FALSE)
 ############################ QUALITY CONTROL ############################
