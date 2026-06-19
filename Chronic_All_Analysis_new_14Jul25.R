@@ -1,5 +1,5 @@
 #################################################################################
-### STutility for actue all timepoints (1, 2 weeks)
+### STutility for all timepoints (1, 4 and 12 weeks)
 library(STutility)
 library(ggplot2)
 library(tidyverse)
@@ -10,28 +10,22 @@ library("clusterProfiler")
 library(clustree)
 
 load("./Chronic_All_Analysis.Rdata")
-
-
-
 infoTable <- read.table("infotable.txt",
                         header=T, sep="\t", stringsAsFactors = FALSE)
 ############################ QUALITY CONTROL ############################
 test <- infoTable[c(3,4,7,8,11,12) ,]
 se <- InputFromTable(infotable = test, platform =  "Visium", disable.subset = TRUE)
 dim(as.data.frame(se@assays$RNA@counts)) #[32180 genes, 19334 spots]
-
 ############################ PER SPOT STATS ############################
 col_attr <- data.frame(nUMI = Matrix::colSums(se@assays$RNA@counts), 
                        ngene = Matrix::colSums(se@assays$RNA@counts > 0))
 quantile(col_attr$ngene, probs = c(0.05))
 quantile(col_attr$nUMI, probs = c(0.05))
-
-############################  PER GENE STATS ############################
+###########################  PER GENE STATS ############################
 gene_attr <- data.frame(nUMI = Matrix::rowSums(se@assays$RNA@counts), 
                         nSpots = Matrix::rowSums(se@assays$RNA@counts > 0))
 quantile(gene_attr$nSpots, probs = c(0.1))
 quantile(gene_attr$nUMI, probs = c(0.1))
-
 ######################################
 se <- InputFromTable(infotable = test,
                      minSpotsPerGene =20,
@@ -39,7 +33,6 @@ se <- InputFromTable(infotable = test,
                      minGenesPerSpot=303,
                      minUMICountsPerSpot=434,
                      platform =  "Visium")
-
 st.object <- se@tools$Staffli
 dim(st.object[[]])
 dim(as.data.frame(se@assays$RNA@counts))   
@@ -86,7 +79,6 @@ ST.DimPlot(se.section1, dims = 1:14, ncol = 6,  grid.ncol = 2,
            pt.size = 1, center.zero = F, cols = cscale)
 
 FactorGeneLoadingPlot(se.section1, factor = 14, topn = 30, dark.theme = F)
-
 ###################################  Clustering ##########################################
 cluster_resolutions=seq(0.2,0.9,by=0.1)
 se.section1 <- FindNeighbors(object = se.section1, verbose = FALSE, reduction = "NMF", dims = 1:14)
@@ -128,7 +120,6 @@ write.table(de_1vs4_sig,"DE_4_vs_1_sig.txt",sep = "\t",quote = F)
 write.table(pos,"DE_4_vs_1_sig_pos.txt",sep = "\t",quote = F)
 write.table(neg,"DE_4_vs_1_sig_neg.txt",sep = "\t",quote = F)
 
-
 de_4vs12 <- FindMarkers(se.section1,ident.1 = c(7,8), ident.2 = 3)
 de_4vs12_sig <- de_4vs12[de_4vs12$p_val_adj<0.05 ,]
 de_4vs12_sig$gene <- row.names(de_4vs12_sig)
@@ -139,7 +130,6 @@ write.table(de_4vs12_sig,"DE_12_vs_4_sig.txt",sep = "\t",quote = F)
 write.table(pos_4vs12,"DE_12_vs_4_sig_pos.txt",sep = "\t",quote = F)
 write.table(neg_4vs12,"DE_12_vs_4_sig_neg.txt",sep = "\t",quote = F)
 
-
 de_1vs12 <- FindMarkers(se.section1,ident.1 = c(7,8), ident.2 = 12)
 de_1vs12_sig <- de_1vs12[de_1vs12$p_val_adj<0.05 ,]
 de_1vs12_sig$gene <- row.names(de_1vs12_sig)
@@ -149,13 +139,6 @@ neg_1vs12 <- de_1vs12_sig_human[de_1vs12_sig_human$avg_log2FC < 0 ,]
 write.table(de_1vs12_sig,"DE_12_vs_1_sig.txt",sep = "\t",quote = F)
 write.table(pos_1vs12,"DE_12_vs_1_sig_pos.txt",sep = "\t",quote = F)
 write.table(neg_1vs12,"DE_12_vs_1_sig_neg.txt",sep = "\t",quote = F)
-############################ SAVE/READ RDS ############################
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-saveRDS(se.section1, "Chronic_Clustering.RDS") 
-se.section1 <- readRDS("~/Documents/nBox/CM_ST_ALL_Chronic/FINAL_RESULTS/Factors_14/Chronic_Clustering.RDS")
-save(list = ls(), file = "Chronic_Clustering.Rdata")
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 ############################  MARKERS  ############################
 setwd("~/Documents/nBox/CM_ST_ALL_Chronic/FINAL_RESULTS/Factors_14/Markers/")
 FeatureOverlay(se.section1, 
@@ -173,26 +156,17 @@ se.section2 <- subset(x = se.section1, idents = c(12,3,7))
 se.section2@meta.data$seurat_clusters <- factor(se.section2@meta.data$seurat_clusters, levels = c(12,3,7))
 VlnPlot(se.section2, features =c("GRCh38-CACNA1C","GRCh38-CACNB2","GRCh38-RYR2","GRCh38-KCNH2","GRCh38-KCNJ8","GRCh38-KCNMB4",
                                  "GRCh38-CD36","GRCh38-GJA1","GRCh38-ESRRA"), group.by = "seurat_clusters", ncol=3)
-
-
 VlnPlot(se.section2, features =c("GRCh38-ACTC1","GRCh38-ACTN2","GRCh38-MYL2","GRCh38-NKX2-5","GRCh38-TNNT2","GRCh38-TPM1"), group.by = "seurat_clusters", ncol=3)
 VlnPlot(se.section2, features =c("GRCh38-ACTC1","GRCh38-ACTN2","GRCh38-MYL2","GRCh38-NKX2-5","GRCh38-TNNT2","GRCh38-TPM1"), group.by = "seurat_clusters", ncol=3, pt.size=0)
-
 VlnPlot(se.section2, features =c("Ssus11-LAMA1","Ssus11-LAMA2","Ssus11-LAMA3","Ssus11-LAMA4","Ssus11-LAMA5",
                                  "Ssus11-LAMB1","Ssus11-LAMB2","Ssus11-LAMB3","Ssus11-LAMB4",
                                  "Ssus11-LAMC1","Ssus11-LAMC2","Ssus11-LAMC3"), group.by = "seurat_clusters", ncol=4)
-
 VlnPlot(se.section2, features =c("GRCh38-LAMA1","GRCh38-LAMA2","GRCh38-LAMA3","GRCh38-LAMA4","GRCh38-LAMA5",
                                  "GRCh38-LAMB1","GRCh38-LAMB2","GRCh38-LAMB3","GRCh38-LAMB4",
                                  "GRCh38-LAMC1","GRCh38-LAMC2","GRCh38-LAMC3"), group.by = "seurat_clusters", ncol=4)
-
-
 VlnPlot(se.section2, features =c("GRCh38-MDK","GRCh38-SDC2","GRCh38-SDC4","GRCh38-LRP1","GRCh38-NCL","GRCh38-VEGFA","GRCh38-VEGFB","GRCh38-VEGFR1"), group.by = "seurat_clusters", ncol=4, pt.size=0)
 VlnPlot(se.section2, features =c("GRCh38-POSTN","GRCh38-ITGV","GRCh38-ITGB5"), group.by = "seurat_clusters", ncol=2)
-
 VlnPlot(se.section2, features =c("GRCh38-MYH6","GRCh38-MYH7","GRCh38-MYL7","GRCh38-MYL2","GRCh38-TNNI1","GRCh38-TNNI3"), group.by = "seurat_clusters", ncol=2)
-
-
 VlnPlot(se.section1, features =c("Ssus11-PECAM1","GRCh38-VWF"), group.by = "slide_id2", ncol=2)
 
 markers <- c(
@@ -207,18 +181,16 @@ markers <- c(
   # "GRCh38-MYL4",
   # "GRCh38-GJA1","GRCh38-NKX2-5",
   # "GRCh38-TNNI1","GRCh38-TNNI3","GRCh38-TNNC1",
-  # "GRCh38-TNNT2","GRCh38-TPM1","GRCh38-TTN"
-  
+  # "GRCh38-TNNT2","GRCh38-TPM1","GRCh38-TTN"  
   # "GRCh38-LAMA1","GRCh38-LAMA2","GRCh38-LAMA3","GRCh38-LAMA4","GRCh38-LAMA5",
   # "GRCh38-LAMB1","GRCh38-LAMB2","GRCh38-LAMB3",#"GRCh38-LAMB4",
   # "GRCh38-LAMC1","GRCh38-LAMC2","GRCh38-LAMC3"
-  # # 
   "Ssus11-LAMA1","Ssus11-LAMA3","Ssus11-LAMA4",#"Ssus11-LAMA2","Ssus11-LAMA5",
   "Ssus11-LAMB1","Ssus11-LAMB2","Ssus11-LAMB3",#"Ssus11-LAMB4",
   "Ssus11-LAMC1","Ssus11-LAMC2","Ssus11-LAMC3"
 )
-#path_saveoutputs <- "~/Documents/nBox/CM_ST_ALL_Chronic/FINAL_RESULTS/Factors_14/Markers/"
-path_saveoutputs <- "~/Documents/nBox/CM_ST_ALL_Chronic/FINAL_RESULTS/Laminins/"
+#path_saveoutputs <- "~/CM_ST_ALL_Chronic/FINAL_RESULTS/Factors_14/Markers/"
+path_saveoutputs <- "~/CM_ST_ALL_Chronic/FINAL_RESULTS/Laminins/"
 
 for (IDplotvar in 1:length(markers)){
   name_file <- paste(markers[IDplotvar],"_12wk_rep2",sep="")
@@ -236,12 +208,6 @@ for (IDplotvar in 1:length(markers)){
   ggplot2::ggsave(filename=file.path(path_saveoutputs,paste0(name_file,".eps")),test1, height=6,width=6)
   
 }
-############################ SAVE/READ RDS ############################
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-save(list = ls(), file = "Chronic_Clust_Markers.Rdata")
-#load("~/Documents/nBox/CM_ST_ALL_Acute/RESULTS_FINAL/Markers/Acute_Clust_Markers.Rdata")
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 ############################ Quantification ###########################
 se.section3_meta <- as.data.frame(se.section1@meta.data)
 se.section3_meta$Barcode <- row.names(se.section3_meta)
@@ -279,7 +245,6 @@ engrafted_df2 %>% group_by(Gene, Species) %>%
   summarise(value=list(Exp)) %>% spread(Species, value) %>% 
   group_by(Gene) %>% 
   mutate(p_value = t.test(unlist(GRCh38), unlist(Ssus11))$p.value, paired = FALSE, t_value = t.test(unlist(GRCh38), unlist(Ssus11))$statistic)
-
 ############################ Functional Analysis for human cluster ###########################
 setwd("~/Documents/nBox/CM_ST_ALL_Chronic/FINAL_RESULTS/Factors_14/FunctionalAna")
 human_clus <- de.markers_se.section1 %>% dplyr::filter(cluster %in% c(7,8)) %>%
@@ -295,8 +260,6 @@ clust1_human_kegg <- enrichKEGG(gene = clust1_human_id$ENTREZID, organism     = 
 clust1_human_kegg  <- setReadable(clust1_human_kegg , OrgDb = org.Hs.eg.db, keyType = "ENTREZID")
 dotplot(clust1_human_kegg, showCategory = 25)
 write.table(clust1_human_kegg, "Chronic_Human_12wk_kegg.txt", sep="\t")
-
-
 #======================================. GSEA ==========================================
 common_human_fc <- pos %>%  dplyr::select(GeneSym2, avg_log2FC) %>% arrange(-avg_log2FC)
 common_human_fc_id <- bitr(common_human_fc$GeneSym2, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = "org.Hs.eg.db")
@@ -333,21 +296,6 @@ VlnPlot(se.section1, features =c("GRCh38-ACTC1","GRCh38-ACTN2","GRCh38-NKX2-5","
 save(list = ls(), file = "Chronic_All_Analysis.Rdata")
 #load("~/Documents/nBox/CM_ST_ALL_Acute/RESULTS_FINAL/Acute_All_Analysis.Rdata")
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#+
-
-test1 <- SubsetSTData(se.section1, expression = slide_id=="1wk_Rep1")
-test2 <- SubsetSTData(se.section1, expression = slide_id=="1wk_Rep2")
-test3 <- SubsetSTData(se.section1, expression = slide_id=="4wk_Rep1")
-test4 <- SubsetSTData(se.section1, expression = slide_id=="4wk_Rep2")
-test5 <- SubsetSTData(se.section1, expression = slide_id=="12wk_Rep1")
-test6 <- SubsetSTData(se.section1, expression = slide_id=="12wk_Rep2")
-
-dim(as.data.frame(test1@assays$RNA@counts))
-dim(as.data.frame(test2@assays$RNA@counts))
-dim(as.data.frame(test3@assays$RNA@counts))
-dim(as.data.frame(test4@assays$RNA@counts))
-dim(as.data.frame(test5@assays$RNA@counts))
-dim(as.data.frame(test6@assays$RNA@counts))
 
 
 
